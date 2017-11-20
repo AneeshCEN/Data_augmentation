@@ -7,7 +7,7 @@ Created on Mon Nov 20 18:14:12 2017
 """
 import cv2
 import tensorflow as tf
-
+import matplotlib.pyplot as plt
 
 img_size_cropped, img_size_cropped = 256, 256
 
@@ -54,5 +54,7 @@ def pre_process_image(image, training):
     
 if __name__ == "__main__":
     img = cv2.imread('/home/aneesh/Data_augmentation/AIRBAG_INDICATOR.png')
+    plt.imshow(img, cmap=plt.cm.gray)
+    plt.show()
     
     
