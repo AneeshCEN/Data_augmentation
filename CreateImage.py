@@ -5,56 +5,43 @@ Created on Mon Nov 20 18:14:12 2017
 
 @author: aneesh
 """
-import cv2
-import tensorflow as tf
-import matplotlib.pyplot as plt
 
-img_size_cropped, img_size_cropped = 256, 256
+
+
+img_size_cropped, img_size_cropped = 148, 148
+
+from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+
 
 num_channels = 3
 
-def pre_process_image(image, training):
-    # This function takes a single image as input,
-    # and a boolean whether to build the training or testing graph.
-    
-    if training:
-        # For training, add the following to the TensorFlow graph.
+def image_transformation(input_image):
+    datagen = ImageDataGenerator(
+                                 rotation_range=180,
+                                 width_shift_range=0.2,
+                                 height_shift_range=0.2,
+                                 shear_range=0.2,
+                                 zoom_range=0.2,
+                                 horizontal_flip=True,
+                                 fill_mode='nearest'
+                                 )
 
-        # Randomly crop the input image.
-        image = tf.random_crop(image, size=[img_size_cropped, img_size_cropped, num_channels])
 
-        # Randomly flip the image horizontally.
-        image = tf.image.random_flip_left_right(image)
-        
-        # Randomly adjust hue, contrast and saturation.
-        image = tf.image.random_hue(image, max_delta=0.05)
-        image = tf.image.random_contrast(image, lower=0.3, upper=1.0)
-        image = tf.image.random_brightness(image, max_delta=0.2)
-        image = tf.image.random_saturation(image, lower=0.0, upper=2.0)
 
-        # Some of these functions may overflow and result in pixel
-        # values beyond the [0, 1] range. It is unclear from the
-        # documentation of TensorFlow 0.10.0rc0 whether this is
-        # intended. A simple solution is to limit the range.
-
-        # Limit the image pixels between [0, 1] in case of overflow.
-        image = tf.minimum(image, 1.0)
-        image = tf.maximum(image, 0.0)
-    else:
-        # For training, add the following to the TensorFlow graph.
-
-        # Crop the input image around the centre so it is the same
-        # size as images that are randomly cropped during training.
-        image = tf.image.resize_image_with_crop_or_pad(image,
-                                                       target_height=img_size_cropped,
-                                                       target_width=img_size_cropped)
-
-    return image
+# the .flow() command below generates batches of randomly transformed images
+# and saves the results to the `preview/` directory
+    i = 0
+    for batch in datagen.flow(input_image, batch_size=1,
+                              save_to_dir='preview', save_prefix='AIRBAG_INDICATOR', save_format='png'):
+        i += 1
+        if i > 100:
+            break  # otherwise the generator would loop indefinitely
     
     
 if __name__ == "__main__":
-    img = cv2.imread('/home/aneesh/Data_augmentation/AIRBAG_INDICATOR.png')
-    plt.imshow(img, cmap=plt.cm.gray)
-    plt.show()
+    img = load_img('/home/aneesh/Data_augmentation/AIRBAG_INDICATOR.png')  # this is a PIL image
+    x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
+    x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
+    image_transformation(x)
     
     
